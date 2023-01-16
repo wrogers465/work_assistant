@@ -29,7 +29,7 @@ class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Monitor Email')
-        self.geometry('300x200')
+        self.geometry('300x100')
         self.bind('<Return>', self._post_dkt)
         
         post_frm = tk.Frame(self)
