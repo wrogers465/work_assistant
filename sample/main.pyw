@@ -95,7 +95,7 @@ class Window(tk.Tk):
         court_minutes = CourtMinutes(pyperclip.paste())
         release_type = court_minutes.find_match(release_types, end_fast=True)
         monitors = court_minutes.find_match(monitor_types)
-        print(release_type)
+
         body_flag = 'Please advise when to schedule.'
         
         try:
