@@ -24,8 +24,6 @@ class CourtMinutes:
                     break
         return list_
 
-        
-
 
 class GUI(tk.Tk):
     def __init__(self):
@@ -52,7 +50,6 @@ class GUI(tk.Tk):
                                                                          text='Baker Act',
                                                                          variable=self.baker_act_var)
 
-        
         self.error_lbl = tk.Label(self, text='')
 
         post_frm.grid(row=0, column=0)
