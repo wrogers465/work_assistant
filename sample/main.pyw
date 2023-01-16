@@ -27,7 +27,7 @@ class CourtMinutes:
         
 
 
-class Window(tk.Tk):
+class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Monitor Email')
@@ -42,7 +42,7 @@ class Window(tk.Tk):
         self.dkt_entry.focus()
         
         self.post_btn = tk.Button(post_frm,
-                                  text='Post',
+                                  text='Create Email',
                                   width=10,
                                   command=self._post_dkt)
 
@@ -169,5 +169,5 @@ class Window(tk.Tk):
 
 
 if __name__ == '__main__':
-    root = Window()
+    root = GUI()
     root.mainloop()
