@@ -28,8 +28,17 @@ class CourtMinutes:
 class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
+        windowWidth = 300
+        windowHeight = 100
+        screenWidth = self.winfo_screenwidth()
+        screenHeight = self.winfo_screenheight()
+
+        xCoord = int((screenWidth/2) - (windowWidth/2))
+        yCoord = int((screenHeight/2) - (windowHeight/2))
+
+        self.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, xCoord, yCoord))
+
         self.title('Monitor Email')
-        self.geometry('300x100')
         self.bind('<Return>', self._post_dkt)
         
         post_frm = tk.Frame(self)
