@@ -1,6 +1,5 @@
 import pyperclip
 import sys
-import threading
 import tkinter as tk
 
 from emailer import Emailer
@@ -193,7 +192,7 @@ class AdminTasksWindow(tk.Toplevel):
                                               width=15)
         active_release_report_lbl.grid(row=0, column=0, padx=10)
         active_release_report_btn.grid(row=0, column=1, padx=10)
-        
+
 
 
 if __name__ == '__main__':
