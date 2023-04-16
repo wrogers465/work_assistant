@@ -1,9 +1,11 @@
 import pyperclip
 import sys
+import threading
 import tkinter as tk
 
 from emailer import Emailer
 from inmate import Inmate
+from lib import active_release_report
 
 
 class CourtMinutes:
@@ -38,7 +40,7 @@ class GUI(tk.Tk):
 
         self.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, xCoord, yCoord))
 
-        self.title('Monitor Email')
+        self.title('Work Assistant')
         self.bind('<Return>', self._post_dkt)
         
         post_frm = tk.Frame(self)
@@ -56,8 +58,12 @@ class GUI(tk.Tk):
         #options_frm objects:
         self.baker_act_var = tk.IntVar()
         self.baker_act_btn = tk.Checkbutton(options_frm,
-                                                                         text='Baker Act',
-                                                                         variable=self.baker_act_var)
+                                            text='Baker Act',
+                                            variable=self.baker_act_var)
+        
+        admin_tasks_btn = tk.Button(options_frm,
+                                    text="Admin Tasks",
+                                    command=lambda self=self: AdminTasksWindow(self))
 
         self.error_lbl = tk.Label(self, text='')
 
@@ -68,6 +74,7 @@ class GUI(tk.Tk):
         self.post_btn.grid(padx=10, pady=10)
 
         self.baker_act_btn.grid(padx=10, pady=10)
+        admin_tasks_btn.grid()
         
         self.error_lbl.grid(padx=10, pady=10)
 
@@ -172,6 +179,21 @@ class GUI(tk.Tk):
                 body=body,
                 mail_address='ASU + MPU',
                 cc='SSs + COC')
+
+class AdminTasksWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.title("Admin Tasks")
+
+        active_release_report_lbl = tk.Label(self, text="Generate Active Report:")
+        active_release_report_btn = tk.Button(self,
+                                              text="Run",
+                                              command=active_release_report,
+                                              width=15)
+        active_release_report_lbl.grid(row=0, column=0, padx=10)
+        active_release_report_btn.grid(row=0, column=1, padx=10)
+        
 
 
 if __name__ == '__main__':
