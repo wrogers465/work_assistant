@@ -29,20 +29,13 @@ class CourtMinutes:
 class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        windowWidth = 300
-        windowHeight = 100
-        screenWidth = self.winfo_screenwidth()
-        screenHeight = self.winfo_screenheight()
 
-        xCoord = int((screenWidth/2) - (windowWidth/2))
-        yCoord = int((screenHeight/2) - (windowHeight/2))
-
-        self.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, xCoord, yCoord))
+        self._center_window()
 
         self.title('Work Assistant')
         self.bind('<Return>', self._post_dkt)
         
-        post_frm = tk.Frame(self)
+        post_frm = tk.Frame(self, borderwidth=2, relief="groove")
         options_frm = tk.Frame(self)
 
         #post_frm objects:
@@ -66,7 +59,7 @@ class GUI(tk.Tk):
 
         self.error_lbl = tk.Label(self, text='')
 
-        post_frm.grid(row=0, column=0)
+        post_frm.grid(row=0, column=0, padx=10, pady=10)
         options_frm.grid(row=0, column=1)
         
         self.dkt_entry.grid(padx=10, pady=10)
@@ -76,6 +69,17 @@ class GUI(tk.Tk):
         admin_tasks_btn.grid()
         
         self.error_lbl.grid(padx=10, pady=10)
+
+    def _center_window(self):
+        windowWidth = 300
+        windowHeight = 100
+        screenWidth = self.winfo_screenwidth()
+        screenHeight = self.winfo_screenheight()
+
+        xCoord = int((screenWidth/2) - (windowWidth/2))
+        yCoord = int((screenHeight/2) - (windowHeight/2))
+
+        self.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, xCoord, yCoord))
 
 
     def _update_error_lbl(self, msg):
@@ -190,8 +194,8 @@ class AdminTasksWindow(tk.Toplevel):
                                               text="Run",
                                               command=active_release_report,
                                               width=15)
-        active_release_report_lbl.grid(row=0, column=0, padx=10)
-        active_release_report_btn.grid(row=0, column=1, padx=10)
+        active_release_report_lbl.grid(row=0, column=0, padx=10, pady=10)
+        active_release_report_btn.grid(row=0, column=1, padx=10, pady=10)
 
 
 
