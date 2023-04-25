@@ -45,3 +45,7 @@ def active_release_report():
     create_text_doc(csv_data)
 
 
+def test():
+    return 1
+
+
