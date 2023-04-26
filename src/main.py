@@ -1,10 +1,8 @@
 import pyperclip
-import sys
 import tkinter as tk
 
-from emailer import Emailer
-from inmate import Inmate
-from lib import active_release_report
+from classes import *
+from functions import *
 
 
 class CourtMinutes:
@@ -26,7 +24,7 @@ class CourtMinutes:
         return list_
 
 
-class GUI(tk.Tk):
+class UserInterface(tk.Tk):
     def __init__(self):
         super().__init__()
 
@@ -178,10 +176,10 @@ class GUI(tk.Tk):
                    {court_minutes.text}'''
 
 
-        Emailer(subject=subject,
-                body=body,
-                mail_address='ASU + MPU',
-                cc='SSs + COC')
+        create_email(subject=subject,
+                    body=body,
+                    mail_address='ASU + MPU',
+                    cc='SSs + COC')
 
 class AdminTasksWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -192,7 +190,7 @@ class AdminTasksWindow(tk.Toplevel):
         active_release_report_lbl = tk.Label(self, text="Generate Active Report:")
         active_release_report_btn = tk.Button(self,
                                               text="Run",
-                                              command=active_release_report,
+                                              command=create_active_release_report,
                                               width=15)
         active_release_report_lbl.grid(row=0, column=0, padx=10, pady=10)
         active_release_report_btn.grid(row=0, column=1, padx=10, pady=10)
@@ -200,5 +198,5 @@ class AdminTasksWindow(tk.Toplevel):
 
 
 if __name__ == '__main__':
-    root = GUI()
-    root.mainloop()
+    window = UserInterface()
+    window.mainloop()

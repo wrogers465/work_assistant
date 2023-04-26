@@ -75,20 +75,4 @@ class Inmate:
             except IndexError:
                 pass
 
-        return last_name, first_name        
-    
-       
-#FOR DEBUGGING
-def main():
-    while True:
-        print('Enter docket number: ')
-        docket = input()
-        inmate = Inmate(docket)
-        print(inmate.housing,
-              inmate.release_date,
-              inmate.booking_date,
-              inmate.person_id)
-
-if __name__ == '__main__':
-    main()
-    
+        return last_name, first_name
