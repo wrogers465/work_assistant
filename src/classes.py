@@ -84,11 +84,12 @@ class Inmate:
         self.release_date = None
         self.housing = self._get_housing(find('//*[@id="CellLocation"]'))
 
-
     @property
     def name(self):
         return f'{self.lname}, {self.fname}'
     
+    def as_dict(self):
+        return self.__dict__
     
     def _get_housing(self, housing):
         

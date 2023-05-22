@@ -54,6 +54,7 @@ def create_active_release_report():
 
 
 def email_factory(docket: str, email_data: dict) -> Email:
+    inmate = Inmate(docket).as_dict()
     func = email_data["func"]
     if func:
         try:
@@ -61,6 +62,8 @@ def email_factory(docket: str, email_data: dict) -> Email:
         except AttributeError:
             pass
 
+    email.subject = email.subject.format(inmate)
+    email.body = email.body.format(inmate)
     email = Email(**email_data)
     return email
 
