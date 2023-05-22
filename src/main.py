@@ -1,37 +1,19 @@
-import pyperclip
 import tkinter as tk
-
-from classes import *
-from functions import *
-
-
-class CourtMinutes:
-    def __init__(self, text):
-        self.text = text
-
-    def find_match(self, dict_, end_fast=False):
-        list_ = []
-        end_now = False
-        for k, v in dict_.items():
-            if end_now:
-                break
-            for item in v:
-                if item in self.text:
-                    list_.append(k)
-                    if end_fast:
-                        end_now = True
-                    break
-        return list_
+from functions import email_factory, create_active_release_report
+from db import Database
+import time
+from threading import Thread
 
 
 class UserInterface(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        self._db = Database()
         self._center_window()
 
         self.title('Work Assistant')
-        self.bind('<Return>', self._post_dkt)
+        self.bind('<Return>', self._create_email)
         
         post_frm = tk.Frame(self, borderwidth=2, relief="groove")
         options_frm = tk.Frame(self)
@@ -39,38 +21,46 @@ class UserInterface(tk.Tk):
         #post_frm objects:
         self.dkt_entry = tk.Entry(post_frm)
         self.dkt_entry.focus()
+
+        self.email_options = self._db.get_email_options()
+
+        self.selected_email = tk.StringVar(self)
+        self.selected_email.set(self.email_options[0])
+        self._set_current_email()
         
-        self.post_btn = tk.Button(post_frm,
+        email_menu = tk.OptionMenu(post_frm, self.selected_email, *self.email_options)
+
+        self.selected_email.trace('w', self._set_current_email)
+        
+        create_email_btn = tk.Button(post_frm,
                                   text='Create Email',
                                   width=10,
-                                  command=self._post_dkt)
+                                  command=self._create_email)
+        
+        add_email_template_btn = tk.Button(post_frm,
+                                     text="Edit Templates",
+                                     command=lambda self=self: AddEmailWindow(self))
 
         #options_frm objects:
-        self.baker_act_var = tk.IntVar()
-        self.baker_act_btn = tk.Checkbutton(options_frm,
-                                            text='Baker Act',
-                                            variable=self.baker_act_var)
         
         admin_tasks_btn = tk.Button(options_frm,
                                     text="Admin Tasks",
                                     command=lambda self=self: AdminTasksWindow(self))
 
-        self.error_lbl = tk.Label(self, text='')
-
         post_frm.grid(row=0, column=0, padx=10, pady=10)
         options_frm.grid(row=0, column=1)
         
-        self.dkt_entry.grid(padx=10, pady=10)
-        self.post_btn.grid(padx=10, pady=10)
+        self.dkt_entry.grid(columnspan=2 ,padx=10, pady=10)
+        email_menu.grid(row=1, columnspan=2, padx=5, pady=5)
+        create_email_btn.grid(row=2, column=0, padx=5, pady=5)
+        add_email_template_btn.grid(row=2, column=1, padx=5, pady=5)
 
-        self.baker_act_btn.grid(padx=10, pady=10)
         admin_tasks_btn.grid()
-        
-        self.error_lbl.grid(padx=10, pady=10)
+    
 
     def _center_window(self):
-        windowWidth = 300
-        windowHeight = 100
+        windowWidth = 320
+        windowHeight = 140
         screenWidth = self.winfo_screenwidth()
         screenHeight = self.winfo_screenheight()
 
@@ -79,107 +69,144 @@ class UserInterface(tk.Tk):
 
         self.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, xCoord, yCoord))
 
-
-    def _update_error_lbl(self, msg):
-        self.error_lbl.configure(text=msg)
-
-
-    def _post_dkt(self, event=None):
-        docket = self.dkt_entry.get().strip()
-        
+    def _create_email(self, event=None):
+        docket = self.dkt_entry.get()
+        template_name = self.selected_email.get()
         self.dkt_entry.delete(0, tk.END)
-        baker_act_var = self.baker_act_var.get()
-        self.baker_act_var.set(0)
+        # if len(docket) != 7 or not docket.isnumeric():
+        #     return None
+
+        email_data = self._db.get_email_by_template_name(template_name)
         
-        if len(docket) != 7 and not docket.isnumeric():
-            return None
+        email = email_factory(docket, email_data)
+        email.create()
 
-        monitor_types = {'CAM': ['CAM', 'ALCOHOL MONITOR'],
-                         'GPS': ['GPS', 'ELECTRONIC MONITOR'],
-                         'RBT': ['RBT', 'REMOTE BREATH']}
+    def _set_current_email(self, *args) -> dict:
+        template_name = self.selected_email.get()
+        current_email = self._db.get_email_by_template_name(template_name)
+        self.current_email = current_email
 
-        release_types = {'S/ROR': ['S/ROR', 'SUPERVISED ROR', 'SROR'],
-                         'ROR': ['ROR', 'U/ROR', 'UNSUPERVISED ROR'],
-                         'Bond': ['BOND REMAIN', 'BOND AMENDED'],
-                         'EMP Transfer': ['SERVED ON GPS',
-                                          'TO BE SERVED ON ALTERNATIVE SENTENCING'],
-                         'Prob': ['PROBATION']}
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._db.close()
 
 
-        court_minutes = CourtMinutes(pyperclip.paste())
-        release_type = court_minutes.find_match(release_types, end_fast=True)
-        monitors = court_minutes.find_match(monitor_types)
+class AddEmailWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
 
-        body_flag = 'Please advise when to schedule.'
-        
-        try:
-            subject = f'{release_type[0]}'
-        except IndexError as e:
-            self._update_error_lbl('Could not find the release type in court minutes.')
-        
-        if 'EMP Transfer' in release_type:
-            try:
-                monitors.remove('GPS')
-            except ValueError:
-                pass            
+        self.parent = parent
+        self.title("Template Editor")
+        template_menu_frame = tk.Frame(self)
+        entry_frame = tk.Frame(self)
+        text_box_frame = tk.Frame(self)
+        button_frame = tk.Frame(self)
+        notice_frame = tk.Frame(self)
 
-        
-        inmate = Inmate(docket)
+        self.selected_email = tk.StringVar(self)
+        self.selected_email.set(parent.selected_email.get())
+        self.selected_email.trace("w", self._set_fields)
+        template_menu_label = tk.Label(template_menu_frame, text="Template:")
+        email_menu = tk.OptionMenu(template_menu_frame, self.selected_email, *parent.email_options)
+
+        template_name_label = tk.Label(entry_frame, text="Name:")
+        self.template_name_entry = tk.Entry(entry_frame, width=25)
+
+        subject_label = tk.Label(entry_frame, text="Subject:")
+        self.subject_entry = tk.Entry(entry_frame, width=35)
+
+        receiver_label = tk.Label(entry_frame, text="To:")
+        self.receiver_entry = tk.Entry(entry_frame, width=50)
+
+        cc_label = tk.Label(entry_frame, text="Cc:")
+        self.cc_entry = tk.Entry(entry_frame, width=50)
+
+        func_label = tk.Label(entry_frame, text="Function:")
+        self.func_entry = tk.Entry(entry_frame, width=15)
+
+        body_label = tk.Label(text_box_frame, text="Body:")
+        self.body_text_box = tk.Text(text_box_frame, height=15, width=75)
+
+        save_button = tk.Button(button_frame, text="Save", width=10, command=self._save)
+        self.notice_label = tk.Label(notice_frame, text="")
+
+        self._set_fields(parent.current_email)
+
+        #***GRIDDING***
+        template_menu_frame.grid()
+        template_menu_label.grid(row=0, column=0)
+        email_menu.grid(row=0, column=1)
+
+        entry_frame.grid(padx=10, pady=10, sticky="w")
+        template_name_label.grid(row=0, column=0, sticky="e")
+        self.template_name_entry.grid(row=0, column=1, sticky="w")
+
+        subject_label.grid(row=1, column=0, sticky="e")
+        self.subject_entry.grid(row=1, column=1, sticky="w")
+
+        #entry frame column 2, 3
+        receiver_label.grid(row=0, column=2, padx=7, pady=2, sticky="e")
+        self.receiver_entry.grid(row=0, column=3)
+
+        cc_label.grid(row=1, column=2, padx=7, pady=2, sticky="e")
+        self.cc_entry.grid(row=1, column=3)
+
+        func_label.grid(row=2, column=2, padx=7, pady=2, sticky="e")
+        self.func_entry.grid(row=2, column=3, sticky="w")
+
+        text_box_frame.grid(padx=10, pady=10)
+        body_label.grid(row=0, column=0, sticky="e")
+        self.body_text_box.grid(row=0, column=1, sticky="w")
+
+        button_frame.grid()
+        save_button.grid(row=0, column=0, padx=10, pady=10)
+
+        notice_frame.grid()
+        self.notice_label.grid()       
+
+    def _save(self):
+        email_data = {
+            "template_name": self.template_name_entry.get(),
+            "subject": self.subject_entry.get(),
+            "body": self.body_text_box.get("1.0", tk.END).strip(),
+            "receiver": self.receiver_entry.get(),
+            "cc": self.cc_entry.get(),
+            "func": self.func_entry.get()
+        }
+        self.parent._db.save_email(email_data)
+
+        self._empty_fields()
+
+        self._give_notice_thread(f"Email template \"{email_data['template_name']}\" successfully saved.")
+
+    def _give_notice_thread(self, message):
+        Thread(target=self._give_notice, args=(message,)).start()
+
+    def _give_notice(self, message):
+        self.notice_label.config(text=message)
+        time.sleep(3)
+        self.notice_label.config(text="")
 
 
-
-        match len(monitors):
-            case 1:
-                subject += f' w/ {monitors[0]}'
-            case 2:
-                subject += f' w/ {monitors[0]} & {monitors[1]}'
-            case default:
-                pass
-
-
-        if baker_act_var == 1:
-            
-            def get_pronouns(gender):
-                return {'MALE': ('He', 'his'),
-                              'FEMALE': ('She', 'her')}.get(gender, ('He', 'his'))
-
-            def get_phrasing(release_type):
-                match release_type:
-                    case 'Bond':
-                        return f'has posted {release_type.lower()} and a monitor is a condition of release'
-                    case default:
-                        return f'was given {release_type} today in court and a monitor is a condition of release'
-
-            pronouns = get_pronouns(inmate.gender)
-            phrasing_1 = get_phrasing(release_type[0])
-            
-            subject += ' (To PEMHS)'
-            body_flag = f'''The above subject {phrasing_1}. {pronouns[0]} is also being baker acted and will be transported to PEMHS.
-
-                                  If needed, we can provide PEMHS a hold order instructing that ASU/APAD be called prior to {pronouns[1]} discharge.'''
-            
-        else:
-            subject += f' - {inmate.short_lname}'
+    def _set_fields(self, *args):
+        self.parent.selected_email.set(self.selected_email.get())
+        email_data = self.parent.current_email
+        self._empty_fields()
+        self.template_name_entry.insert(0, email_data["template_name"])
+        self.subject_entry.insert(0, email_data["subject"])
+        self.body_text_box.insert("1.0", email_data["body"])
+        self.receiver_entry.insert(0, email_data["receiver"])
+        self.cc_entry.insert(0, email_data["cc"])
+        self.func_entry.insert(0, email_data["func"])
 
 
-        body = f'''Docket: {inmate.docket}
-                   Name: {inmate.name}
-                   Person ID: {inmate.person_id}
-                    
+    def _empty_fields(self):
+        self.template_name_entry.delete(0, tk.END)
+        self.subject_entry.delete(0, tk.END)
+        self.body_text_box.delete("1.0", tk.END)
+        self.receiver_entry.delete(0, tk.END)
+        self.cc_entry.delete(0, tk.END)
+        self.func_entry.delete(0, tk.END)
 
-                   {body_flag}
-
-
-                   Thanks,
-
-
-                   {court_minutes.text}'''
-
-
-        create_email(subject=subject,
-                    body=body,
-                    mail_address='ASU + MPU',
-                    cc='SSs + COC')
 
 class AdminTasksWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -194,8 +221,6 @@ class AdminTasksWindow(tk.Toplevel):
                                               width=15)
         active_release_report_lbl.grid(row=0, column=0, padx=10, pady=10)
         active_release_report_btn.grid(row=0, column=1, padx=10, pady=10)
-
-
 
 if __name__ == '__main__':
     window = UserInterface()

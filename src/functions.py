@@ -1,49 +1,16 @@
 import json
-import sqlite3
 import csv
 import subprocess
-import win32com.client as win32
-
-
-DATABASE_PATH = "./data.db"
+try:
+    from classes import Email, Inmate
+    import email_functions
+except ModuleNotFoundError:
+    from src.classes import Email, Inmate
+    import src.email_functions
 
 
 with open("config.json") as f:
-     CONFIG_DATA = json.load(f)
-
-
-def create_email(subject='[BLANK]', body='[BLANK]', mail_address='person1@gmail.com', cc=''):
-
-     with open("config.json") as f:
-          email_body = CONFIG_DATA['email_wrapper'].format(body)
-
-     outlook = win32.Dispatch('outlook.application')
-     mail = outlook.CreateItem(0)
-     mail.To = mail_address
-     mail.Cc = cc
-     mail.Subject = subject
-     mail.HtmlBody = email_body
-     mail.Display(True)
-
-
-def create_db():
-    with sqlite3.connect(DATABASE_PATH) as db:
-        cur = db.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS emails(name TEXT, receiver TEXT, carbon_copy TEXT, subject TEXT, body TEXT, uses INTEGER, func TEXT)")
-
-
-def get_initial_email_data():
-    with sqlite3.connect(DATABASE_PATH) as db:
-        cur = db.cursor()
-
-        cur.execute("SELECT name FROM emails ORDER BY uses DESC")
-        email_names = [item[0] for item in cur.fetchall()]
-
-        cur.execute("SELECT * FROM emails WHERE name = ?", (email_names[0],))
-        initial_email = cur.fetchone()
-
-        return email_names, initial_email
-
+     CONFIG_DATA = json.load(f)   
 
 def extract_csv_data():
     csv_file_path = CONFIG_DATA['path_of_release_report_as_csv']
@@ -64,6 +31,7 @@ def extract_csv_data():
     except Exception as e:
         return e
 
+
 def create_text_doc(csv_data: list):
     def add_space(index):
         if index < 9:
@@ -83,3 +51,18 @@ def create_text_doc(csv_data: list):
 def create_active_release_report():
     csv_data = extract_csv_data()
     create_text_doc(csv_data)
+
+
+def email_factory(docket: str, email_data: dict) -> Email:
+    func = email_data["func"]
+    if func:
+        try:
+            email_data = getattr(email_functions, func)(email_data)
+        except AttributeError:
+            pass
+
+    email = Email(**email_data)
+    return email
+
+if __name__ == "__main__":
+    pass

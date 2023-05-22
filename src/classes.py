@@ -1,24 +1,70 @@
+import json
+import pythoncom
 import re
 import requests
+import threading
 from datetime import datetime
 from lxml import html
+import win32com.client as win32
+
+
+
+with open("config.json") as f:
+     CONFIG_DATA = json.load(f)
 
 
 class InmateNotFound(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-        
-class Inmate:
+class Email:
+    def __init__(self, **kwargs):
 
-    URL = 'https://www.pcsoweb.com/InmateBooking/SubjectResults.aspx?id='
+        self._template_name = kwargs.get("template_name", None)
+        self.subject = kwargs.get("subject", None)
+        self.body = kwargs.get("body", None)
+        self.receiver = kwargs.get("receiver", None)
+        self.cc = kwargs.get("cc", None)
+        self.func = kwargs.get("func", None)
+
+    def create(self):
+        thread = threading.Thread(target=self._create_email)
+        thread.start()        
+
+    def _create_email(self):
+        pythoncom.CoInitialize()
+
+        with open("config.json") as f:
+            formatted_body = CONFIG_DATA['email_wrapper'].format(self.body)
+
+        outlook = win32.Dispatch('outlook.application')
+        mail = outlook.CreateItem(0)
+        mail.To = self.receiver
+        mail.Cc = self.cc
+        mail.Subject = self.subject
+        mail.HtmlBody = formatted_body.replace("\n", "<br>")
+        mail.Display(True)
+
+    @property
+    def template_name(self):
+        return self._template_name
+
+    @template_name.setter
+    def name(self, template_name):
+        self._name = template_name
+
+    def as_list(self):
+        return [self.template_name, self.subject, self.body,
+                self.to, self.cc, self.function]
     
-    def __init__(self, docket):
-        
-        res = requests.get(Inmate.URL + docket)
-        self._root = html.fromstring(res.content)
+            
+class Inmate:
+    
+    def __init__(self, docket: str):
+       
+        self._raw_html = self._get_html(docket)
 
-        find = lambda path: self._root.xpath(path)[0].text_content()
+        find = lambda path: self._raw_html.xpath(path)[0].text_content()
 
         self.lname, self.fname = self._format_name(find('//*[@id="lblName1"]'))
         
@@ -29,7 +75,7 @@ class Inmate:
             pass
             
         
-        self.docket = docket
+        self.docket = find('//*[@id="lblDocket1"]')
         self.dob = find('//*[@id="lblDOB1"]')
         self.gender = find('//*[@id="lblSex1"]')
         self.person_id = find('//*[@id="lblSPIN"]')
@@ -64,7 +110,6 @@ class Inmate:
 
         return '-'.join(split_housing[i[0]:i[1]])
     
-
     def _format_name(self, name):
         last_name, first_name = name.title().split(',')
         first_name = first_name.strip().split(' ')[0]
@@ -76,3 +121,8 @@ class Inmate:
                 pass
 
         return last_name, first_name
+    
+    def _get_html(self):
+        base_url = 'https://www.pcsoweb.com/InmateBooking/SubjectResults.aspx?id='
+        res = requests.get(base_url + self.docket)
+        return html.fromstring(res.content)
