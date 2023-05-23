@@ -8,7 +8,6 @@ from lxml import html
 import win32com.client as win32
 
 
-
 with open("config.json") as f:
      CONFIG_DATA = json.load(f)
 
@@ -79,15 +78,10 @@ class Inmate:
         self.dob = find('//*[@id="lblDOB1"]')
         self.gender = find('//*[@id="lblSex1"]')
         self.person_id = find('//*[@id="lblSPIN"]')
-        self.booking_date = datetime.strptime(find('//*[@id="lblArrestDate1"]'),
-                                              '%m/%d/%Y %H:%M:%S %p')
+        self.booking_date = datetime.strptime(find('//*[@id="lblArrestDate1"]'),'%m/%d/%Y %H:%M:%S %p')
         self.release_date = None
         self.housing = self._get_housing(find('//*[@id="CellLocation"]'))
-
-    @property
-    def name(self):
-        return f'{self.lname}, {self.fname}'
-    
+   
     def as_dict(self):
         return self.__dict__
     

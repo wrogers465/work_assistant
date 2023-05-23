@@ -15,29 +15,23 @@ class UserInterface(tk.Tk):
         self.title('Work Assistant')
         self.bind('<Return>', self._create_email)
         
-        post_frm = tk.Frame(self, borderwidth=2, relief="groove")
+        self.email_frm = tk.Frame(self, borderwidth=2, relief="groove")
         options_frm = tk.Frame(self)
 
-        #post_frm objects:
-        self.dkt_entry = tk.Entry(post_frm)
+        #email_frm objects:
+        self.dkt_entry = tk.Entry(self.email_frm)
         self.dkt_entry.focus()
 
         self.email_options = self._db.get_email_options()
-
-        self.selected_email = tk.StringVar(self)
-        self.selected_email.set(self.email_options[0])
-        self._set_current_email()
+        self._create_email_menu()
+        self._set_current_email()        
         
-        email_menu = tk.OptionMenu(post_frm, self.selected_email, *self.email_options)
-
-        self.selected_email.trace('w', self._set_current_email)
-        
-        create_email_btn = tk.Button(post_frm,
+        create_email_btn = tk.Button(self.email_frm,
                                   text='Create Email',
                                   width=10,
                                   command=self._create_email)
         
-        add_email_template_btn = tk.Button(post_frm,
+        add_email_template_btn = tk.Button(self.email_frm,
                                      text="Edit Templates",
                                      command=lambda self=self: AddEmailWindow(self))
 
@@ -47,17 +41,15 @@ class UserInterface(tk.Tk):
                                     text="Admin Tasks",
                                     command=lambda self=self: AdminTasksWindow(self))
 
-        post_frm.grid(row=0, column=0, padx=10, pady=10)
+        self.email_frm.grid(row=0, column=0, padx=10, pady=10)
         options_frm.grid(row=0, column=1)
         
-        self.dkt_entry.grid(columnspan=2 ,padx=10, pady=10)
-        email_menu.grid(row=1, columnspan=2, padx=5, pady=5)
+        self.dkt_entry.grid(row=0, columnspan=2 ,padx=10, pady=10)
         create_email_btn.grid(row=2, column=0, padx=5, pady=5)
         add_email_template_btn.grid(row=2, column=1, padx=5, pady=5)
 
         admin_tasks_btn.grid()
     
-
     def _center_window(self):
         windowWidth = 320
         windowHeight = 140
@@ -81,10 +73,22 @@ class UserInterface(tk.Tk):
         email = email_factory(docket, email_data)
         email.create()
 
+    def _create_email_menu(self):
+        self.email_var = tk.StringVar()
+        self.email_var.set(self.email_options[0])
+        self.email_var.trace('w', self._set_current_email)
+        self.email_menu = tk.OptionMenu(self.email_frm, self.email_var, *self.email_options)
+        self.email_menu.grid(row=1, columnspan=2, padx=5, pady=5)
+
     def _set_current_email(self, *args) -> dict:
-        template_name = self.selected_email.get()
+        template_name = self.email_var.get()
         current_email = self._db.get_email_by_template_name(template_name)
         self.current_email = current_email
+
+    def _update_email_menu(self, template_name: str):
+        self.email_options.remove(template_name)
+        self.email_menu.destroy()
+        self._create_email_menu()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._db.close()
@@ -96,17 +100,14 @@ class AddEmailWindow(tk.Toplevel):
 
         self.parent = parent
         self.title("Template Editor")
-        template_menu_frame = tk.Frame(self)
+        self.template_menu_frame = tk.Frame(self)
         entry_frame = tk.Frame(self)
         text_box_frame = tk.Frame(self)
         button_frame = tk.Frame(self)
         notice_frame = tk.Frame(self)
 
-        self.selected_email = tk.StringVar(self)
-        self.selected_email.set(parent.selected_email.get())
-        self.selected_email.trace("w", self._set_fields)
-        template_menu_label = tk.Label(template_menu_frame, text="Template:")
-        email_menu = tk.OptionMenu(template_menu_frame, self.selected_email, *parent.email_options)
+        template_menu_label = tk.Label(self.template_menu_frame, text="Template:")
+        self._create_email_menu()
 
         template_name_label = tk.Label(entry_frame, text="Name:")
         self.template_name_entry = tk.Entry(entry_frame, width=25)
@@ -127,14 +128,14 @@ class AddEmailWindow(tk.Toplevel):
         self.body_text_box = tk.Text(text_box_frame, height=15, width=75)
 
         save_button = tk.Button(button_frame, text="Save", width=10, command=self._save)
+        delete_button = tk.Button(button_frame, text="Delete", width=10, command=self._delete)
         self.notice_label = tk.Label(notice_frame, text="")
 
         self._set_fields(parent.current_email)
 
         #***GRIDDING***
-        template_menu_frame.grid()
+        self.template_menu_frame.grid()
         template_menu_label.grid(row=0, column=0)
-        email_menu.grid(row=0, column=1)
 
         entry_frame.grid(padx=10, pady=10, sticky="w")
         template_name_label.grid(row=0, column=0, sticky="e")
@@ -159,6 +160,7 @@ class AddEmailWindow(tk.Toplevel):
 
         button_frame.grid()
         save_button.grid(row=0, column=0, padx=10, pady=10)
+        delete_button.grid(row=0, column=1, padx=10, pady=10)
 
         notice_frame.grid()
         self.notice_label.grid()       
@@ -173,10 +175,17 @@ class AddEmailWindow(tk.Toplevel):
             "func": self.func_entry.get()
         }
         self.parent._db.save_email(email_data)
-
-        self._empty_fields()
-
         self._give_notice_thread(f"Email template \"{email_data['template_name']}\" successfully saved.")
+
+    def _delete(self):
+        template_name = self.template_name_entry.get()
+        if template_name == "":
+            return None
+        self.parent._db.delete_email(template_name)
+        self._empty_fields()
+        self.parent._update_email_menu(template_name)
+        self._update_email_menu()
+        self._give_notice_thread(f"Email template {template_name} has been deleted.")
 
     def _give_notice_thread(self, message):
         Thread(target=self._give_notice, args=(message,)).start()
@@ -186,9 +195,8 @@ class AddEmailWindow(tk.Toplevel):
         time.sleep(3)
         self.notice_label.config(text="")
 
-
     def _set_fields(self, *args):
-        self.parent.selected_email.set(self.selected_email.get())
+        self.parent.email_var.set(self.email_var.get())
         email_data = self.parent.current_email
         self._empty_fields()
         self.template_name_entry.insert(0, email_data["template_name"])
@@ -198,7 +206,6 @@ class AddEmailWindow(tk.Toplevel):
         self.cc_entry.insert(0, email_data["cc"])
         self.func_entry.insert(0, email_data["func"])
 
-
     def _empty_fields(self):
         self.template_name_entry.delete(0, tk.END)
         self.subject_entry.delete(0, tk.END)
@@ -207,6 +214,16 @@ class AddEmailWindow(tk.Toplevel):
         self.cc_entry.delete(0, tk.END)
         self.func_entry.delete(0, tk.END)
 
+    def _create_email_menu(self):
+        self.email_var = tk.StringVar()
+        self.email_var.set(self.parent.email_var.get())
+        self.email_var.trace("w", self._set_fields)
+        self.email_menu = tk.OptionMenu(self.template_menu_frame, self.email_var, *self.parent.email_options)
+        self.email_menu.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
+
+    def _update_email_menu(self):
+        self.email_menu.destroy()
+        self._create_email_menu()
 
 class AdminTasksWindow(tk.Toplevel):
     def __init__(self, parent):

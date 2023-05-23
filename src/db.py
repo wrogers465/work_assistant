@@ -27,8 +27,16 @@ class Database:
         return dict(self.cursor.fetchone())
     
     def save_email(self, email_data: dict):
+        for k in email_data:
+            if email_data[k] == '':
+                email_data[k] = None
         query = f"INSERT OR REPLACE INTO emails ({','.join(email_data.keys())}) VALUES ({','.join(['?' for _ in email_data.values()])})"
         self.cursor.execute(query, tuple(email_data.values()))
+        self.conn.commit()
+
+    def delete_email(self, template_name: str):
+        query = f"DELETE FROM emails WHERE template_name = ?"
+        self.cursor.execute(query, (template_name,))
         self.conn.commit()
 
     def close(self):

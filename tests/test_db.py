@@ -38,6 +38,20 @@ def test_that_email_is_saved(database):
     assert result["template_name"] == template_name
 
 
+def test_that_func_is_returned_as_none(database):
+    template_name = str(uuid.uuid4())
+    email_data = {"template_name": template_name,
+                  "subject": "Test",
+                  "body": "Test",
+                  "receiver": "wrogers465@gmail.com",
+                  "cc": "wrogers465@outlook.com",
+                  "func": ""}  #saving func as "", which should then be entered into db as null
+    
+    database.save_email(email_data)
+    result = database.get_email_by_template_name(template_name)
+    assert result["func"] == None
+
+
 @pytest.mark.skip("Skipping so that a new database isn't created each test")
 def test_that_db_is_created(mocker):
     mocker.patch("src.db.DATABASE_PATH", DATABASE_PATH)

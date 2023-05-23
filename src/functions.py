@@ -55,15 +55,16 @@ def create_active_release_report():
 
 def email_factory(docket: str, email_data: dict) -> Email:
     inmate = Inmate(docket).as_dict()
+    print(inmate)
     func = email_data["func"]
     if func:
         try:
-            email_data = getattr(email_functions, func)(email_data)
+            subj_args, body_args = getattr(src.email_functions, func)()
         except AttributeError:
-            pass
+            subj_args, body_args = ["", "", "", "", ""], ["", "", "", "", ""]
 
-    email.subject = email.subject.format(inmate)
-    email.body = email.body.format(inmate)
+    email_data["subject"] = email_data["subject"].format(*subj_args, **inmate)
+    email_data["body"] = email_data["body"].format(*body_args, **inmate)
     email = Email(**email_data)
     return email
 
