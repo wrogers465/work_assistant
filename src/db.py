@@ -11,7 +11,9 @@ class Database:
 
         if not os.path.isfile(DATABASE_PATH):
             self.conn = sqlite3.connect(DATABASE_PATH)
-            self.conn.executescript(DATABASE_PATH)
+            with open(SCHEMA_PATH, "r") as f:
+                script = f.read()
+                self.conn.executescript(script)
         else:
             self.conn = sqlite3.connect(DATABASE_PATH)
 
@@ -24,7 +26,10 @@ class Database:
     
     def get_email_by_template_name(self, template_name: str) -> dict:
         self.cursor.execute("SELECT * FROM emails WHERE template_name = ?", (template_name,))
-        return dict(self.cursor.fetchone())
+        try:
+            return dict(self.cursor.fetchone())
+        except TypeError:
+            return {}
     
     def save_email(self, email_data: dict):
         for k in email_data:

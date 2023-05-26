@@ -22,12 +22,12 @@ def mock_inmate(mocker):
         html_file = html.fromstring(f.read())
 
     mocker.patch.object(classes.Inmate, '_get_html', return_value=html_file)
+
     inmate = classes.Inmate('1921091')
     return inmate
 
 def test_email_factory(mock_inmate, mock_email_data):
     email_data = mock_email_data
-    # email_data = {'id': 11, 'template_name': 'Savanna fox', 'subject': 'budgetary management', 'body': 'Curabitur in libero ut massa volutpat convallis. Morbi odio odio, elementum eu, interdum eu, tincidunt in, leo. Maecenas pulvinar lobortis est. Phasellus sit amet erat. Nulla tempus. Vivamus in felis eu sapien cursus vestibulum. Proin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.', 'receiver': 'kbenedictea@npr.org', 'cc': 'sramarda@yelp.com', 'func': 'Peso', 'number_of_uses': 98}
     email = functions.email_factory("1932345", email_data)
     email.create()
 

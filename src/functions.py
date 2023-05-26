@@ -1,6 +1,8 @@
 import json
 import csv
+import os
 import subprocess
+
 try:
     from classes import Email, Inmate
     import email_functions
@@ -53,20 +55,19 @@ def create_active_release_report():
     create_text_doc(csv_data)
 
 
-def email_factory(docket: str, email_data: dict) -> Email:
+def email_factory(docket: str, email_data: dict, options={}) -> Email:
     inmate = Inmate(docket).as_dict()
-    print(inmate)
     func = email_data["func"]
     if func:
+        print(getattr(src.email_functions, func)(options))
         try:
-            subj_args, body_args = getattr(src.email_functions, func)()
+            subject, body, attachment = getattr(src.email_functions, func)(options)
         except AttributeError:
-            subj_args, body_args = ["", "", "", "", ""], ["", "", "", "", ""]
+            return (["", "", "", "", ""], ["", "", "", "", ""], None)
 
-    email_data["subject"] = email_data["subject"].format(*subj_args, **inmate)
-    email_data["body"] = email_data["body"].format(*body_args, **inmate)
+    email_data["subject"] = email_data["subject"].format(*subject, **inmate)
+    email_data["body"] = email_data["body"].format(*body, **inmate)
+    if attachment:
+        email_data["attachment"] = attachment
     email = Email(**email_data)
     return email
-
-if __name__ == "__main__":
-    pass

@@ -9,5 +9,6 @@ CREATE TABLE emails(
     receiver TEXT,
     cc TEXT,
     func TEXT,
+    options TEXT,
     number_of_uses INTEGER DEFAULT 0 NOT NULL
 );

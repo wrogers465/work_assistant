@@ -1,4 +1,5 @@
 import json
+import os
 import pythoncom
 import re
 import requests
@@ -25,6 +26,7 @@ class Email:
         self.receiver = kwargs.get("receiver", None)
         self.cc = kwargs.get("cc", None)
         self.func = kwargs.get("func", None)
+        self.attachment = kwargs.get("attachment", None)
 
     def create(self):
         thread = threading.Thread(target=self._create_email)
@@ -34,6 +36,7 @@ class Email:
         pythoncom.CoInitialize()
 
         with open("config.json") as f:
+            CONFIG_DATA = json.load(f)  # Assuming you wanted to load json here.
             formatted_body = CONFIG_DATA['email_wrapper'].format(self.body)
 
         outlook = win32.Dispatch('outlook.application')
@@ -42,6 +45,10 @@ class Email:
         mail.Cc = self.cc
         mail.Subject = self.subject
         mail.HtmlBody = formatted_body.replace("\n", "<br>")
+
+        if self.attachment and os.path.isfile(self.attachment):
+            mail.Attachments.Add(Source=self.attachment)
+
         mail.Display(True)
 
     @property
@@ -61,9 +68,9 @@ class Inmate:
     
     def __init__(self, docket: str):
        
-        self._raw_html = self._get_html(docket)
+        raw_html = self._get_html(docket)
 
-        find = lambda path: self._raw_html.xpath(path)[0].text_content()
+        find = lambda path: raw_html.xpath(path)[0].text_content()
 
         self.lname, self.fname = self._format_name(find('//*[@id="lblName1"]'))
         
@@ -73,7 +80,6 @@ class Inmate:
         except IndexError:
             pass
             
-        
         self.docket = find('//*[@id="lblDocket1"]')
         self.dob = find('//*[@id="lblDOB1"]')
         self.gender = find('//*[@id="lblSex1"]')
@@ -81,6 +87,14 @@ class Inmate:
         self.booking_date = datetime.strptime(find('//*[@id="lblArrestDate1"]'),'%m/%d/%Y %H:%M:%S %p')
         self.release_date = None
         self.housing = self._get_housing(find('//*[@id="CellLocation"]'))
+
+        match self.gender:
+            case "MALE":
+                self.his_her = "his"
+                self.he_she = "he"
+            case "FEMALE":
+                self.his_her = "her"
+                self.he_she = "she"
    
     def as_dict(self):
         return self.__dict__
