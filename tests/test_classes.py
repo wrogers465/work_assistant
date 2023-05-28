@@ -11,7 +11,7 @@ def email():
 @pytest.fixture
 def mock_email_data():
     database = db.Database()
-    email_data = database.get_email_by_template_name("Monitor Email")
+    email_data = database.get_email_by_template_name("ICE Ready for Pickup")
     database.close()
     return email_data
 

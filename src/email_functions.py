@@ -1,6 +1,6 @@
 import os
 import pyperclip
-from datetime import datetime
+from datetime import datetime, timedelta
 from pypdf import PdfWriter, PdfReader
 
 
@@ -55,24 +55,40 @@ def monitor_email(options):
     return return_tuple(subject_args, body_args)
 
 
-def ice_ready_for_pick_up(options: dict):
-    folder = os.path.join(os.getenv("USERPROFILE"), "Documents")
+def ice_ready_for_pickup(options: dict):
+    current_dir = os.getcwd()
+    os.chdir(DOC_PATH)
     earliest_time, mtime = 0, 0
     newest_file = ""
-    for file in os.listdir(folder):
-        mtime = os.path.getmtime(os.path.join(folder, file))
+    for file in os.listdir(os.getcwd()):
+        if "encrypted" in file or not os.path.isfile(file):
+            continue
+        print(file)
+        mtime = os.path.getmtime(file)
         if mtime > earliest_time:
-            if "encrypted" not in file:
-                earliest_time = mtime
-                newest_file = file
-    _encrypt_pdf(newest_file, "detainers_encryped.pdf", "Records1")
+            earliest_time = mtime
+            newest_file = file
+    _encrypt_pdf(newest_file, "detainers_encrypted.pdf", "Records1")
+    os.chdir(current_dir)
 
-    return return_tuple()
+    now = datetime.now()
+    deadline = (now + timedelta(days=3, minutes=1)).strftime("%H%M on %#m/%#d/%Y")
+    time_of_day = ""
+    match now.hour:
+        case _ if 4 < now.hour < 12:
+            time_of_day = 'morning'
+        case _ if now.hour < 18:
+            time_of_day = 'afternoon'
+        case _:
+            time_of_day = 'evening'
+
+    subj_args = []
+    body_args = [time_of_day, deadline]
+
+    return return_tuple(subj_args, body_args)
 
 
 def _encrypt_pdf(file, new_file_name, password):
-    project_directory = os.getcwd()
-    os.chdir(DOC_PATH)
 
     reader = PdfReader(file)
 
@@ -84,5 +100,4 @@ def _encrypt_pdf(file, new_file_name, password):
 
     with open(new_file_name, "wb") as output_pdf:
         pdf_writer.write(output_pdf)
-    
-    os.chdir(project_directory)
+
