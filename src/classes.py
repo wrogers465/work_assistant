@@ -68,9 +68,8 @@ class Inmate:
     
     def __init__(self, docket: str):
        
-        raw_html = self._get_html(docket)
-
-        find = lambda path: raw_html.xpath(path)[0].text_content()
+        self.html = self._get_html(docket)
+        find = lambda path: self.html.xpath(path)[0].text_content()
 
         self.lname, self.fname = self._format_name(find('//*[@id="lblName1"]'))
         
@@ -130,6 +129,27 @@ class Inmate:
                 pass
 
         return last_name, first_name
+    
+    @property
+    def charges(self):
+        charges = []
+        key, key_index = "", -2
+
+        for i, td in enumerate(self.html.xpath('//td')):
+            try:
+                text = td.text.strip()
+                if "Charge Number" in text:
+                    charges.append({})
+                elif ":" in text:
+                    key = text.replace(":", "")
+                    key_index = i
+                elif (i-1) == key_index:
+                    charges[-1][key] = text    
+            except AttributeError:
+                if(i-1) == key_index:
+                    charges[-1][key] = None
+        return charges
+
     
     def _get_html(self):
         base_url = 'https://www.pcsoweb.com/InmateBooking/SubjectResults.aspx?id='

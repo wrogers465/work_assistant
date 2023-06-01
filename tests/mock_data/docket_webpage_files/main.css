@@ -1,0 +1,276 @@
+body {
+font-family : Verdana, Geneva, Arial, Helvetica, sans-serif; 
+font-size:  12px;
+color: #000000;
+font-weight: normal;
+}
+
+
+
+
+.tdBold10
+{
+	FONT-WEIGHT: bold;
+	font-size: 10px;
+	
+}
+
+.tdBold
+{
+	FONT-WEIGHT: bold;
+		
+}
+
+.textBlue 
+{
+	color: #0033FF;
+}
+
+.td10 
+{
+	font-size: 10px;	
+}
+
+.td11
+{
+	font-size: 10px;	
+}
+
+.td8
+{
+	font-size: 8px;
+}
+
+.tdGreen 
+{
+	background-color: #d0e8d0;
+	/*background-color: #42714A;*/
+	color: black;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: normal;
+	
+}
+
+.tdTanLarge 
+{
+	background-color: #d0e8d0;
+	/*background-color: #EBD7AD;*/
+	color: black;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 14px;
+    FONT-WEIGHT: Bold;
+	
+}
+
+.tdTanBold
+{
+	/*background-color: #EBD7AD;*/
+	color: black;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: Bold;
+	
+}
+
+.tdBoldUline
+{
+	color: black;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 10px;
+    FONT-WEIGHT: Bold;
+    text-decoration: underline;
+	
+}
+
+.tdTanBoldBorder
+{
+	/*background-color: Blue; */
+	background-color: #EBD7AD;
+	color: black;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: Bold;
+    border-top: solid 1px #000000;
+    border-bottom: solid 1px #000000;
+	
+}
+
+.tdGreenBold
+{
+	background-color: #EBD7AD;
+	color: #000000;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold;
+    
+}
+
+.tdLightGreenBold
+{
+	background-color: #F7EEDD;
+	color: #000000;
+    FONT-FAMILY: Verdana, Helvetica, sans-serif;
+    FONT-SIZE: 12px;
+    FONT-WEIGHT: bold;
+    
+}
+
+.textbox {
+	border: #000000 1px inset;
+	border-color: #000000 #666666 #666666 #000000;
+	background-color: #FFFFFF;
+	background-attachment: fixed;
+	/*background-image: url(Graphics/box_shadow.gif);*/
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 10px;
+	color: #000000;
+}
+
+td  
+{
+	color: black; 
+	font-size: 12px; 
+	font-family: Verdana, Helvetica, Geneva, Swiss, SunSans-Regular; 
+}
+
+.t2 
+{
+	color: black; 
+	font-size: 12px; 
+	font-family: Verdana, Helvetica, Geneva, Swiss, SunSans-Regular;
+	border: none;
+	border-width: 0px 0px 0px 0px;
+	
+}
+
+
+.TextBox1 {
+	border: #000000 1px inset;
+	border-color: #000000 #666666 #666666 #000000;
+	background-color: #FFFFFF;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	color: #000000;
+}
+
+.buttonBlue {
+	font-family: arial, helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	color: #ffffff;
+	background-color: #225688;
+	line-height: 12px;
+	padding-top: 1px; padding-bottom: 0px;
+	padding-left: 0px; padding-right: 0px;
+	margin-bottom: 0px; margin-top: 0px;
+	text-decoration: none;
+}
+
+.buttonGreen {
+	font-family: arial, helvetica, sans-serif;
+	font-size: 10px;
+	font-weight: bold;
+	color: #ffffff;
+	background-color: #336633;
+	line-height: 10px;
+	padding-top: 1px; padding-bottom: 0px;
+	padding-left: 0px; padding-right: 0px;
+	margin-bottom: 0px; margin-top: 0px;
+	text-decoration: none;
+}
+
+.buttonTan {
+	font-family: arial, helvetica, sans-serif;
+	font-size: 10px;
+	font-weight: bold;
+	color: #000000;
+	background-color: #EBD7AD;
+	line-height: 10px;
+	padding-top: 2px; padding-bottom: 2px;
+	padding-left: 2px; padding-right: 2px;
+	margin-bottom: 0px; margin-top: 0px;
+	text-decoration: none;
+}
+
+.tdBlue 
+{
+	background-color: #225688;
+	color: #ffffff;
+	font-size: 12px;
+	font-weight: bold;
+	font-family: Arial, helvetica, Sans-Serif;	
+	border-width: 1px 1px 1px 1px; 
+	border-style: solid; 
+	border-color: #000000; 
+
+}
+
+
+img
+{
+	border: none 0px #ffffff;
+}
+
+.pad2
+{
+	padding: 2px 2px 2px 2px;
+}
+
+.cornerbox{
+	position: absolute;
+	background-color: #F0F0E7;
+	width:100%;
+	height:100%;
+	padding: 14px;
+	border: none;
+}
+
+.cornerbox1{
+	position: absolute;
+	background-color: #F0F0E7;
+	padding: 14px;
+	border: none;
+}
+
+.cornerbox2{
+	position: absolute;
+	width:100%;
+	height:100%;
+	padding: 14px;
+	border: none;
+}
+
+.cornerboxTan{
+	position: relative;
+	background-color: #ece8d6;
+	width:100%;
+	height:100%;
+	padding: 14px;
+	border: none;
+}
+
+.cornerTL{
+	position: absolute;
+	top:0;
+	left:0;
+	margin:0;
+}
+.cornerTR{
+	position: absolute;
+	top:0;
+	right:0;
+	margin:0;
+}
+.cornerBR{
+	position: absolute;
+	bottom:0;
+	right:0;
+	margin:0;
+}
+.cornerBL{
+	position: absolute;
+	bottom:0;
+	left:0;
+	margin:0;
+}

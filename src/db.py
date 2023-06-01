@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 
+DATA_PATH = "./data"
 DATABASE_PATH = "./data/data.sqlite"
 SCHEMA_PATH = "./data/schema.sql"
 
@@ -44,6 +45,15 @@ class Database:
         self.cursor.execute(query, (template_name,))
         self.conn.commit()
 
+    def reset_pending_release_inmates(self, inmate_list: list):
+        with open(os.path.join(DATA_PATH, "reset_pending_release_inmates.sql"), "r") as f:
+            script = f.read()
+            self.conn.executescript(script)
+
+        query = "INSERT INTO pending_release_inmates (docket, name) VALUES (?, ?)"
+        self.conn.executemany(query, inmate_list)
+        self.conn.commit()        
+
     def close(self):
         self.conn.commit()
         self.conn.close()
@@ -67,3 +77,9 @@ def get_initial_email_data():
         initial_email = cur.fetchone()
 
         return email_names, initial_email
+    
+
+if __name__ == '__main__':
+    db = Database()
+    db.create_table()
+    db.close()

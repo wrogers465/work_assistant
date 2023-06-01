@@ -23,12 +23,17 @@ def mock_inmate(mocker):
 
     mocker.patch.object(classes.Inmate, '_get_html', return_value=html_file)
 
-    inmate = classes.Inmate('1921091')
+    inmate = classes.Inmate('1874567')
     return inmate
 
+def test_inmate(mock_inmate):
+    inmate = mock_inmate
+    print(inmate.charges)
+
+@pytest.mark.skip()
 def test_email_factory(mock_inmate, mock_email_data):
     email_data = mock_email_data
-    email = functions.email_factory("1932345", email_data)
+    email = functions.email_factory("1874567", email_data)
     email.create()
 
 @pytest.mark.skip("Skipping so that an email isn't generated each time I test")
