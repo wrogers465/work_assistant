@@ -1,14 +1,9 @@
 import json
 import csv
-import os
 import subprocess
 
-try:
-    from classes import Email, Inmate
-    import email_functions
-except ModuleNotFoundError:
-    from src.classes import Email, Inmate
-    import src.email_functions
+import src.email_functions
+from src.classes import Email, Inmate
 
 
 with open("config.json") as f:
@@ -58,12 +53,13 @@ def create_active_release_report():
 def email_factory(docket: str, email_data: dict, options={}) -> Email:
     inmate = Inmate(docket).as_dict()
     func = email_data["func"]
+    subject, body, attachment = ["", "", "", "", ""], ["", "", "", "", ""], None
     if func:
         print(getattr(src.email_functions, func)(options))
         try:
             subject, body, attachment = getattr(src.email_functions, func)(options)
         except AttributeError:
-            return (["", "", "", "", ""], ["", "", "", "", ""], None)
+            pass
 
     email_data["subject"] = email_data["subject"].format(*subject, **inmate)
     email_data["body"] = email_data["body"].format(*body, **inmate)

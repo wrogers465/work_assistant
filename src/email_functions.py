@@ -9,6 +9,17 @@ DOC_PATH = os.path.join(os.getenv("USERPROFILE"), "Documents")
 def return_tuple(subject, body, attachment=None):
     return (subject, body, attachment)
 
+def set_cwd(func):
+
+    def wrap(*args, **kwargs):
+        current_cwd = os.getcwd()
+        os.chdir(DOC_PATH)
+        result = func(*args, **kwargs)
+        os.chdir(current_cwd)
+        return result
+
+    return wrap
+
 
 def monitor_email(options):
     court_minutes = pyperclip.paste().strip()
@@ -54,38 +65,31 @@ def monitor_email(options):
 
     return return_tuple(subject_args, body_args)
 
-
+@set_cwd
 def ice_ready_for_pickup(options: dict):
-    current_dir = os.getcwd()
-    os.chdir(DOC_PATH)
     earliest_time, mtime = 0, 0
-    newest_file = ""
-    for file in os.listdir(os.getcwd()):
+    old_file_name = ""
+    new_file_name = "detainers_encrypted.pdf"
+    cwd = os.getcwd()
+    for file in os.listdir(cwd):
         if "encrypted" in file or not os.path.isfile(file):
             continue
-        print(file)
         mtime = os.path.getmtime(file)
         if mtime > earliest_time:
             earliest_time = mtime
-            newest_file = file
-    _encrypt_pdf(newest_file, "detainers_encrypted.pdf", "Records1")
-    os.chdir(current_dir)
+            old_file_name = file
+    _encrypt_pdf(old_file_name, new_file_name, "Records1")
 
     now = datetime.now()
     deadline = (now + timedelta(days=3, minutes=1)).strftime("%H%M on %#m/%#d/%Y")
-    time_of_day = ""
-    match now.hour:
-        case _ if 4 < now.hour < 12:
-            time_of_day = 'morning'
-        case _ if now.hour < 18:
-            time_of_day = 'afternoon'
-        case _:
-            time_of_day = 'evening'
+    greeting = _get_greeting(now)
 
-    subj_args = []
-    body_args = [time_of_day, deadline]
+    subject_args = []
+    body_args = [greeting, deadline]
 
-    return return_tuple(subj_args, body_args)
+    return return_tuple(subject_args, 
+                        body_args,
+                        os.path.join(cwd, new_file_name))
 
 
 def _encrypt_pdf(file, new_file_name, password):
@@ -100,4 +104,20 @@ def _encrypt_pdf(file, new_file_name, password):
 
     with open(new_file_name, "wb") as output_pdf:
         pdf_writer.write(output_pdf)
+
+
+def _get_greeting(now=None) -> str:
+    if not now:
+        now = datetime.now()
+    greeting = ""
+    match now.hour:
+        case _ if 4 < now.hour < 12:
+            greeting = 'morning'
+        case _ if now.hour < 18:
+            greeting = 'afternoon'
+        case _:
+            greeting = 'evening'
+    return greeting
+
+
 

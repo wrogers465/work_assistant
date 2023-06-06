@@ -1,9 +1,10 @@
 import time
 import tkinter as tk
-from functions import email_factory, create_active_release_report
 from sqlite3 import IntegrityError
-from db import Database
 from threading import Thread
+
+from src.db import Database
+from src.functions import email_factory, create_active_release_report
 
 
 class UserInterface(tk.Tk):
