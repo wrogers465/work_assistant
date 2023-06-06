@@ -11,7 +11,7 @@ def email():
 @pytest.fixture
 def mock_email_data():
     database = db.Database()
-    email_data = database.get_email_by_template_name("ICE Ready for Pickup")
+    email_data = database.get_email_by_template_name("ICE Served 247 Form")
     database.close()
     return email_data
 
@@ -26,11 +26,11 @@ def mock_inmate(mocker):
     inmate = classes.Inmate('1874567')
     return inmate
 
+@pytest.mark.skip()
 def test_inmate(mock_inmate):
     inmate = mock_inmate
     print(inmate.charges)
 
-@pytest.mark.skip()
 def test_email_factory(mock_inmate, mock_email_data):
     email_data = mock_email_data
     email = functions.email_factory("1874567", email_data)

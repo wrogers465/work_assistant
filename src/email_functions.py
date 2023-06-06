@@ -20,7 +20,6 @@ def set_cwd(func):
 
     return wrap
 
-
 def monitor_email(options):
     court_minutes = pyperclip.paste().strip()
     if "-----" not in court_minutes:
@@ -67,17 +66,8 @@ def monitor_email(options):
 
 @set_cwd
 def ice_ready_for_pickup(options: dict):
-    earliest_time, mtime = 0, 0
-    old_file_name = ""
+    old_file_name = _get_newest_file()
     new_file_name = "detainers_encrypted.pdf"
-    cwd = os.getcwd()
-    for file in os.listdir(cwd):
-        if "encrypted" in file or not os.path.isfile(file):
-            continue
-        mtime = os.path.getmtime(file)
-        if mtime > earliest_time:
-            earliest_time = mtime
-            old_file_name = file
     _encrypt_pdf(old_file_name, new_file_name, "Records1")
 
     now = datetime.now()
@@ -89,8 +79,22 @@ def ice_ready_for_pickup(options: dict):
 
     return return_tuple(subject_args, 
                         body_args,
-                        os.path.join(cwd, new_file_name))
+                        os.path.join(os.getcwd(), new_file_name))
 
+@set_cwd
+def ice_served_detainer(options: dict):
+    old_file_name = _get_newest_file()
+    new_file_name = "detainer_encrypted.pdf"
+    _encrypt_pdf(old_file_name, new_file_name, "Records1")
+
+    greeting = _get_greeting()
+
+    subject_args = []
+    body_args = [greeting]
+
+    return return_tuple(subject_args, 
+                        body_args,
+                        os.path.join(os.getcwd(), new_file_name))
 
 def _encrypt_pdf(file, new_file_name, password):
 
@@ -105,7 +109,6 @@ def _encrypt_pdf(file, new_file_name, password):
     with open(new_file_name, "wb") as output_pdf:
         pdf_writer.write(output_pdf)
 
-
 def _get_greeting(now=None) -> str:
     if not now:
         now = datetime.now()
@@ -119,5 +122,15 @@ def _get_greeting(now=None) -> str:
             greeting = 'evening'
     return greeting
 
-
+def _get_newest_file() -> str:
+    earliest_time, mtime = 0, 0
+    old_file_name = ""
+    for file in os.listdir():
+        if "encrypted" in file or not os.path.isfile(file):
+            continue
+        mtime = os.path.getmtime(file)
+        if mtime > earliest_time:
+            earliest_time = mtime
+            old_file_name = file
+    return old_file_name
 

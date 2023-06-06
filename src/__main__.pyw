@@ -23,7 +23,8 @@ class UserInterface(tk.Tk):
         misc_func_frame = tk.Frame(self)
 
         #email_frame objects:
-        self.dkt_entry = tk.Entry(self.email_frame)
+        docket_label = tk.Label(self.email_frame, text="Docket:")
+        self.dkt_entry = tk.Entry(self.email_frame, width=12)
         self.dkt_entry.focus()
         
         self._get_email_templates()
@@ -52,7 +53,8 @@ class UserInterface(tk.Tk):
         self.options_frame.grid(row=0, column=1)
         misc_func_frame.grid()
         
-        self.dkt_entry.grid(row=0, columnspan=2 ,padx=10, pady=10)
+        docket_label.grid(row=0, column=0, sticky="e")
+        self.dkt_entry.grid(row=0, column=1, pady=10, sticky="w")
         create_email_btn.grid(row=2, column=0, padx=10, pady=10)
         add_email_template_btn.grid(row=2, column=1, padx=10, pady=10)
 
@@ -301,7 +303,7 @@ class AddEmailWindow(tk.Toplevel):
         self.email_menu = tk.OptionMenu(self.template_menu_frame, self.email_var, *self.parent.email_templates)
         if self.parent.disable_menu:
             self.email_menu.configure(state="disabled")
-        self.email_menu.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
+        self.email_menu.grid(row=0, column=1, columnspan=2, padx=5)
 
     def _update_email_menu(self):
         self.email_menu.destroy()
