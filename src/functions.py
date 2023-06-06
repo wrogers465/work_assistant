@@ -55,9 +55,8 @@ def email_factory(docket: str, email_data: dict, options={}) -> Email:
     func = email_data["func"]
     subject, body, attachment = ["", "", "", "", ""], ["", "", "", "", ""], None
     if func:
-        print(getattr(src.email_functions, func)(options))
         try:
-            subject, body, attachment = getattr(src.email_functions, func)(options)
+            subject, body, attachment = getattr(src.email_functions, func)(inmate, options)
         except AttributeError:
             pass
 

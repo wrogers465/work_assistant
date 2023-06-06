@@ -42,7 +42,10 @@ class Email:
         outlook = win32.Dispatch('outlook.application')
         mail = outlook.CreateItem(0)
         mail.To = self.receiver
-        mail.Cc = self.cc
+        try:
+            mail.Cc = self.cc
+        except AttributeError:
+            pass
         mail.Subject = self.subject
         mail.HtmlBody = formatted_body.replace("\n", "<br>")
 

@@ -11,7 +11,7 @@ def email():
 @pytest.fixture
 def mock_email_data():
     database = db.Database()
-    email_data = database.get_email_by_template_name("ICE Served 247 Form")
+    email_data = database.get_email_by_template_name("Information Filed")
     database.close()
     return email_data
 
@@ -26,10 +26,11 @@ def mock_inmate(mocker):
     inmate = classes.Inmate('1874567')
     return inmate
 
-@pytest.mark.skip()
-def test_inmate(mock_inmate):
+
+def test_inmate_charges(mock_inmate):
     inmate = mock_inmate
-    print(inmate.charges)
+    assert inmate.charges == [{'Agency Report Number': 'SO21055150', 'Offense Description': 'SALE OR DELIVERY OF CRACK COCAINE', 'Statute': '893.13(1)(A)(1)/F', 'Amended Charge Desc.': None, 'Amended Charge Statute': None, 'Court Case Number': '21-08792-CF-1', 'Bond Assessed': '$7,500.00', 'Bond Amount Due': '$0.00', 'Charge Status': 'BONDED OUT', 'Arrest Type': 'ON VIEW', 'OBTS': '5210112013'}, {'Agency Report Number': 'SO21055150', 'Offense Description': 'POSSESSION OF CRACK COCAINE', 'Statute': '893.13(6)(A)/F', 'Amended Charge Desc.': None, 'Amended Charge Statute': None, 'Court Case Number': '21-08792-CF-2', 'Bond Assessed': '$2,000.00', 'Bond Amount Due': '$0.00', 'Charge Status': 'BONDED OUT', 'Arrest Type': 'ON VIEW', 'OBTS': '5210112013'}]
+
 
 def test_email_factory(mock_inmate, mock_email_data):
     email_data = mock_email_data

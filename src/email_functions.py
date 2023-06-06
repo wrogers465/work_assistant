@@ -20,7 +20,7 @@ def set_cwd(func):
 
     return wrap
 
-def monitor_email(options):
+def monitor_email(inmate, options: dict):
     court_minutes = pyperclip.paste().strip()
     if "-----" not in court_minutes:
         return return_tuple(["{}", "{}"], ["{}"])
@@ -65,7 +65,7 @@ def monitor_email(options):
     return return_tuple(subject_args, body_args)
 
 @set_cwd
-def ice_ready_for_pickup(options: dict):
+def ice_ready_for_pickup(inmate, options: dict):
     old_file_name = _get_newest_file()
     new_file_name = "detainers_encrypted.pdf"
     _encrypt_pdf(old_file_name, new_file_name, "Records1")
@@ -82,7 +82,7 @@ def ice_ready_for_pickup(options: dict):
                         os.path.join(os.getcwd(), new_file_name))
 
 @set_cwd
-def ice_served_detainer(options: dict):
+def ice_served_detainer(inmate, options: dict):
     old_file_name = _get_newest_file()
     new_file_name = "detainer_encrypted.pdf"
     _encrypt_pdf(old_file_name, new_file_name, "Records1")
@@ -95,6 +95,20 @@ def ice_served_detainer(options: dict):
     return return_tuple(subject_args, 
                         body_args,
                         os.path.join(os.getcwd(), new_file_name))
+
+def information_filed(inmate, options: dict):
+    charges_as_text = ""
+    charges = inmate.charges
+
+    for charge in charges:
+        if not charge['Amended Charge Desc.']:
+            charges_as_text += f"Case Number: {charge['Court Case Number']}\nOriginal Offense: {charge['Offense Description']} {charge['Statute']}\nFiled As: {charge['Amended Charge Desc.']} {charge['Amended Charge Statute']}\n\n"
+    
+    print(charges_as_text)
+    subject_args = []
+    body_args = [charges_as_text]
+
+    return return_tuple(subject_args, body_args)
 
 def _encrypt_pdf(file, new_file_name, password):
 
