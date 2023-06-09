@@ -244,7 +244,7 @@ class AddEmailWindow(tk.Toplevel):
             "options": self.options_entry.get().strip()
         }
         try:
-            self.parent._db.save_email(email_data)
+            db.save_email(email_data)
         except IntegrityError as e:
             self._give_notice_thread(f"Unable to save. Error: {e}")
             return None
@@ -257,7 +257,7 @@ class AddEmailWindow(tk.Toplevel):
         template_name = self.template_name_entry.get()
         if template_name == "":
             return None
-        self.parent._db.delete_email(template_name)
+        db.delete_email(template_name)
         self._empty_fields()
         self.parent._update_email_menu()
         self._update_email_menu()

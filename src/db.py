@@ -21,7 +21,6 @@ class Database(metaclass=Singleton):
     conn: Connection = None
 
     def __init__(self):
-        print("Wubadubdubdub")
         if self.conn is None:
             if not os.path.isfile(DATABASE_PATH):
                 self.conn = sqlite3.connect(DATABASE_PATH)
@@ -73,23 +72,3 @@ class Database(metaclass=Singleton):
     def close(self):
         self.conn.commit()
         self.conn.close()
-
-
-# def init_db():
-#     db = sqlite3.connect(DATABASE_PATH)
-#     with open(SCHEMA_PATH) as f:
-#         db.executescript(f.read())
-#     db.close()
- 
-
-# def get_initial_email_data():
-#     with sqlite3.connect(DATABASE_PATH) as db:
-#         cur = db.cursor()
-
-#         cur.execute("SELECT name FROM emails ORDER BY uses DESC")
-#         email_names = [item[0] for item in cur.fetchall()]
-
-#         cur.execute("SELECT * FROM emails WHERE name = ?", (email_names[0],))
-#         initial_email = cur.fetchone()
-
-#         return email_names, initial_email
