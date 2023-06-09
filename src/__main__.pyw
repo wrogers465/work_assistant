@@ -3,7 +3,7 @@ import tkinter as tk
 from sqlite3 import IntegrityError
 from threading import Thread
 
-from src.db import Database
+from src import db
 from src.functions import email_factory, create_active_release_report
 
 
@@ -11,7 +11,6 @@ class UserInterface(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self._db = Database()
         self._center_window()
         self.disable_menu = False
 
@@ -77,7 +76,7 @@ class UserInterface(tk.Tk):
         if len(docket) != 7 or not docket.isnumeric():
             return None
 
-        email_data = self._db.get_email_by_template_name(template_name)
+        email_data = db.get_email_by_template_name(template_name)
         
         email = email_factory(docket, email_data, self.email_options)
         self.dkt_entry.delete(0, tk.END)
@@ -123,7 +122,7 @@ class UserInterface(tk.Tk):
             chk_box_var.set(0)
 
     def _get_email_templates(self):
-        email_templates = self._db.get_email_options()
+        email_templates = db.get_email_options()
         if len(email_templates) == 0:
             email_templates.append("No Email Templates")
             self.disable_menu = True
@@ -133,7 +132,7 @@ class UserInterface(tk.Tk):
 
     def _set_current_email(self) -> dict:
         template_name = self.email_var.get()
-        current_email = self._db.get_email_by_template_name(template_name)
+        current_email = db.get_email_by_template_name(template_name)
         self.current_email = current_email
 
     def _on_email_select(self, *args):
@@ -146,8 +145,6 @@ class UserInterface(tk.Tk):
         self._get_email_templates()
         self._create_email_menu()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._db.close()
 
 
 class AddEmailWindow(tk.Toplevel):

@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from sqlite3 import Connection
 
 
 DATA_PATH = "./data"
@@ -7,19 +8,34 @@ DATABASE_PATH = "./data/data.sqlite"
 SCHEMA_PATH = "./data/schema.sql"
 
 
-class Database:
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+    
+    
+class Database(metaclass=Singleton):
+    conn: Connection = None
+
     def __init__(self):
+        print("Wubadubdubdub")
+        if self.conn is None:
+            if not os.path.isfile(DATABASE_PATH):
+                self.conn = sqlite3.connect(DATABASE_PATH)
+                with open(SCHEMA_PATH, "r") as f:
+                    script = f.read()
+                    self.conn.executescript(script)
+            else:
+                self.conn = sqlite3.connect(DATABASE_PATH)
 
-        if not os.path.isfile(DATABASE_PATH):
-            self.conn = sqlite3.connect(DATABASE_PATH)
-            with open(SCHEMA_PATH, "r") as f:
-                script = f.read()
-                self.conn.executescript(script)
-        else:
-            self.conn = sqlite3.connect(DATABASE_PATH)
+            self.conn.row_factory = sqlite3.Row
+            self.cursor = self.conn.cursor()
 
-        self.conn.row_factory = sqlite3.Row
-        self.cursor = self.conn.cursor()
+    def get_connection(self):
+        return self.conn
 
     def get_email_options(self) -> list:
         self.cursor.execute("SELECT template_name FROM emails ORDER BY number_of_uses DESC")
@@ -59,27 +75,21 @@ class Database:
         self.conn.close()
 
 
-def init_db():
-    db = sqlite3.connect(DATABASE_PATH)
-    with open(SCHEMA_PATH) as f:
-        db.executescript(f.read())
-    db.close()
+# def init_db():
+#     db = sqlite3.connect(DATABASE_PATH)
+#     with open(SCHEMA_PATH) as f:
+#         db.executescript(f.read())
+#     db.close()
  
 
-def get_initial_email_data():
-    with sqlite3.connect(DATABASE_PATH) as db:
-        cur = db.cursor()
+# def get_initial_email_data():
+#     with sqlite3.connect(DATABASE_PATH) as db:
+#         cur = db.cursor()
 
-        cur.execute("SELECT name FROM emails ORDER BY uses DESC")
-        email_names = [item[0] for item in cur.fetchall()]
+#         cur.execute("SELECT name FROM emails ORDER BY uses DESC")
+#         email_names = [item[0] for item in cur.fetchall()]
 
-        cur.execute("SELECT * FROM emails WHERE name = ?", (email_names[0],))
-        initial_email = cur.fetchone()
+#         cur.execute("SELECT * FROM emails WHERE name = ?", (email_names[0],))
+#         initial_email = cur.fetchone()
 
-        return email_names, initial_email
-    
-
-if __name__ == '__main__':
-    db = Database()
-    db.create_table()
-    db.close()
+#         return email_names, initial_email
