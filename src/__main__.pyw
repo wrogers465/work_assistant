@@ -145,6 +145,8 @@ class UserInterface(tk.Tk):
         self._get_email_templates()
         self._create_email_menu()
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        db.close()
 
 
 class AddEmailWindow(tk.Toplevel):
