@@ -3,9 +3,8 @@ import sqlite3
 from sqlite3 import Connection
 
 
-DATA_PATH = "./data"
-DATABASE_PATH = "./data/data.sqlite"
-SCHEMA_PATH = "./data/schema.sql"
+DB_PATH = "./data"
+DB_NAME = 'data.sqlite'
 
 
 class Singleton(type):
@@ -22,16 +21,19 @@ class Database(metaclass=Singleton):
 
     def __init__(self):
         if self.conn is None:
-            if not os.path.isfile(DATABASE_PATH):
-                self.conn = sqlite3.connect(DATABASE_PATH)
-                with open(SCHEMA_PATH, "r") as f:
+            cwd = os.getcwd()
+            os.chdir(DB_PATH)
+            if not os.path.isfile(DB_NAME):
+                self.conn = sqlite3.connect(DB_NAME)
+                with open('schema.sql', "r") as f:
                     script = f.read()
                     self.conn.executescript(script)
             else:
-                self.conn = sqlite3.connect(DATABASE_PATH)
+                self.conn = sqlite3.connect(DB_NAME)
 
             self.conn.row_factory = sqlite3.Row
             self.cursor = self.conn.cursor()
+            os.chdir(cwd)
 
     def get_connection(self):
         return self.conn
