@@ -1,5 +1,6 @@
 import os
 import pyperclip
+import re
 from datetime import datetime, timedelta
 from pypdf import PdfWriter, PdfReader
 
@@ -8,6 +9,12 @@ DOC_PATH = os.path.join(os.getenv("USERPROFILE"), "Documents")
 
 def return_tuple(subject, body, attachment=None):
     return (subject, body, attachment)
+
+def get_emails() -> str:
+    clipboard_content = pyperclip.paste()
+    pattern = r"[A-Za-z0-9]+@pcsonet.com"
+    matches = re.findall(pattern, clipboard_content)
+    pyperclip.copy("; ".join(matches))
 
 def set_cwd(func):
 

@@ -4,6 +4,7 @@ from sqlite3 import IntegrityError
 from threading import Thread
 
 from src import db
+from src.email_functions import get_emails
 from src.functions import email_factory, create_active_release_report
 
 
@@ -318,9 +319,17 @@ class AdminTasksWindow(tk.Toplevel):
         active_release_report_btn = tk.Button(self,
                                               text="Run",
                                               command=create_active_release_report,
-                                              width=15)
+                                              width=10)
+        find_emails_lbl = tk.Label(self, text="Find PCSO Emails:")
+        find_emails_btn = tk.Button(self,
+                                    text="Run",
+                                    command=get_emails,
+                                    width=10)
+        
         active_release_report_lbl.grid(row=0, column=0, padx=10, pady=10)
         active_release_report_btn.grid(row=0, column=1, padx=10, pady=10)
+        find_emails_lbl.grid(row=1, column=0, padx=10, pady=10)
+        find_emails_btn.grid(row=1, column=1, padx=10, pady=10)
 
 if __name__ == '__main__':
     window = UserInterface()
