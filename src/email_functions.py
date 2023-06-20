@@ -101,10 +101,9 @@ def information_filed(inmate, options: dict):
     charges = inmate.charges
 
     for charge in charges:
-        if not charge['Amended Charge Desc.']:
+        if charge['Amended Charge Desc.']:
             charges_as_text += f"Case Number: {charge['Court Case Number']}\nOriginal Offense: {charge['Offense Description']} {charge['Statute']}\nFiled As: {charge['Amended Charge Desc.']} {charge['Amended Charge Statute']}\n\n"
     
-    print(charges_as_text)
     subject_args = []
     body_args = [charges_as_text]
 

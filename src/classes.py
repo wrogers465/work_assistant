@@ -70,9 +70,10 @@ class Email:
 class Inmate:
     
     def __init__(self, docket: str):
-       
-        self.html = self._get_html(docket)
+
         find = lambda path: self.html.xpath(path)[0].text_content()
+        self.docket = docket
+        self.html = self._get_html()
 
         self.lname, self.fname = self._format_name(find('//*[@id="lblName1"]'))
         
@@ -82,7 +83,6 @@ class Inmate:
         except IndexError:
             pass
             
-        self.docket = find('//*[@id="lblDocket1"]')
         self.dob = find('//*[@id="lblDOB1"]')
         self.gender = find('//*[@id="lblSex1"]')
         self.person_id = find('//*[@id="lblSPIN"]')
