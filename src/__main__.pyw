@@ -5,7 +5,7 @@ from threading import Thread
 
 from src import db
 from src.email_functions import get_emails
-from src.functions import email_factory, create_active_release_report
+from src.functions import *
 
 
 class UserInterface(tk.Tk):
@@ -316,10 +316,15 @@ class AdminTasksWindow(tk.Toplevel):
         self.title("Admin Tasks")
 
         active_release_report_lbl = tk.Label(self, text="Generate Active Report:")
-        active_release_report_btn = tk.Button(self,
-                                              text="Run",
-                                              command=create_active_release_report,
+        update_active_release_report_btn = tk.Button(self,
+                                          text="Update",
+                                          command=self._update_inmates_pending_release,
+                                          width=10)
+        reset_active_release_report_btn = tk.Button(self,
+                                              text="Reset",
+                                              command=self._reset_inmates_pending_release,
                                               width=10)
+
         find_emails_lbl = tk.Label(self, text="Find PCSO Emails:")
         find_emails_btn = tk.Button(self,
                                     text="Run",
@@ -327,9 +332,23 @@ class AdminTasksWindow(tk.Toplevel):
                                     width=10)
         
         active_release_report_lbl.grid(row=0, column=0, padx=10, pady=10)
-        active_release_report_btn.grid(row=0, column=1, padx=10, pady=10)
+        update_active_release_report_btn.grid(row=0, column=1, padx=10, pady=10)
+        reset_active_release_report_btn.grid(row=0, column=2, padx=10, pady=10)
         find_emails_lbl.grid(row=1, column=0, padx=10, pady=10)
         find_emails_btn.grid(row=1, column=1, padx=10, pady=10)
+
+
+    def _reset_inmates_pending_release(self):
+        inmates = get_inmates_from_csv()
+        db.reset_inmates_pending_release_table(inmates)
+        create_active_release_report(inmates)
+
+    def _update_inmates_pending_release(self):
+        inmates = db.get_inmates_pending_release()
+        update_inmate_release_times(inmates)
+        create_active_release_report(inmates)
+        db.update_inmates_pending_release_table(inmates)
+        
 
 if __name__ == '__main__':
     window = UserInterface()

@@ -9,7 +9,7 @@ from src.classes import Email, Inmate
 with open("config.json") as f:
      CONFIG_DATA = json.load(f)   
 
-def extract_csv_data():
+def get_inmates_from_csv() -> list:
     csv_file_path = CONFIG_DATA['path_of_release_report_as_csv']
     result = list()
 
@@ -20,7 +20,7 @@ def extract_csv_data():
             inmates = csv.reader(f)
             for item in inmates:
                 if len(item) > 19:
-                    result.append((f"{item[10]}, {item[11]}", format_docket(item[9])))
+                    result.append((format_docket(item[9]), f"{item[10]}, {item[11]}", None))
 
             result.sort()
             return result
@@ -28,8 +28,7 @@ def extract_csv_data():
     except Exception as e:
         return e
 
-
-def create_text_doc(csv_data: list):
+def create_active_release_report(csv_data: list):
     def add_space(index):
         if index < 9:
             return " "
@@ -39,16 +38,14 @@ def create_text_doc(csv_data: list):
 
 
     with open(text_doc_path, "w") as f:
-        for i, inmate in enumerate(csv_data):
-            f.write(f"{add_space(i)}{i+1}. {inmate[1]} {inmate[0]}\n")
+        for i, item in enumerate(csv_data):
+            docket, name, release_date = item
+            if release_date == None:
+                f.write(f"{add_space(i)}{i+1}. {docket} {name}\n")
+            else:
+                f.write(f"{add_space(i)}{i+1}. {docket} {name} - Released: {release_date}\n")
 
     subprocess.Popen(["notepad", text_doc_path])
-
-
-def create_active_release_report():
-    csv_data = extract_csv_data()
-    create_text_doc(csv_data)
-
 
 def email_factory(docket: str, email_data: dict, options={}) -> Email:
     inmate = Inmate(docket)
@@ -67,3 +64,14 @@ def email_factory(docket: str, email_data: dict, options={}) -> Email:
         email_data["attachment"] = attachment
     email = Email(**email_data)
     return email
+
+def update_inmate_release_times(inmates: list):
+    for i, inmate in enumerate(inmates):
+        if inmate[2] != None:
+            continue
+
+        docket = inmate[0]
+        inmate_object = Inmate(docket)
+        inmates[i] = (docket, inmate[1], inmate_object.release_date)
+    return inmates
+        

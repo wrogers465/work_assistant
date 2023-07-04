@@ -69,10 +69,10 @@ class Email:
             
 class Inmate:
     
-    def __init__(self, docket: str):
+    def __init__(self, docket):
 
         find = lambda path: self.html.xpath(path)[0].text_content()
-        self.docket = docket
+        self.docket = str(docket)
         self.html = self._get_html()
 
         self.lname, self.fname = self._format_name(find('//*[@id="lblName1"]'))
@@ -87,8 +87,7 @@ class Inmate:
         self.gender = find('//*[@id="lblSex1"]')
         self.person_id = find('//*[@id="lblSPIN"]')
         self.booking_date = datetime.strptime(find('//*[@id="lblArrestDate1"]'),'%m/%d/%Y %H:%M:%S %p')
-        self.release_date = None
-        self.housing = self._get_housing(find('//*[@id="CellLocation"]'))
+        self.housing, self.release_date = self._get_housing(find('//*[@id="CellLocation"]'))
 
         match self.gender:
             case "MALE":
@@ -101,9 +100,11 @@ class Inmate:
     def as_dict(self):
         return self.__dict__
     
-    def _get_housing(self, housing):
-        
-        split_housing = housing.split('-')
+    def _get_housing(self, raw_text):
+
+        housing = None
+        release_date = None
+        split_housing = raw_text.split('-')
         
         i = {'CEN': [1, 2],
              'CSOD': [1, 3],
@@ -111,15 +112,15 @@ class Inmate:
              'ND': [1, 3],
              'HD': [2, 3]}.get(split_housing[0], None)
 
-        if not i:
-            if housing.startswith('RELEASED'):
+        if i == None:
+            if raw_text.startswith('RELEASED'):
                 p = r'\d+/\d+/\d+ \d+:\d+ (AM|PM)'
-                m = re.search(p, housing)
-                self.release_date = datetime.strptime(m.group(),
-                                                      '%m/%d/%Y %H:%M %p')
-                return None
+                m = re.search(p, raw_text)
+                release_date = m.group()
+        else:
+            housing = '-'.join(split_housing[i[0]:i[1]])
 
-        return '-'.join(split_housing[i[0]:i[1]])
+        return housing, release_date
     
     def _format_name(self, name):
         last_name, first_name = name.title().split(',')

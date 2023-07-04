@@ -48,6 +48,16 @@ class Database(metaclass=Singleton):
             return dict(self.cursor.fetchone())
         except TypeError:
             return {}
+
+    def get_inmates_pending_release(self) -> list:
+        self.cursor.execute("SELECT * FROM inmates_pending_release")
+        inmates = self.cursor.fetchall()
+        return inmates
+
+    def reset_inmates_pending_release_table(self, inmates: list): #inmates is in form of [(docket, name), ...]
+        self.cursor.execute("DELETE FROM inmates_pending_release;",)
+        self.cursor.executemany("INSERT INTO inmates_pending_release (docket, name, release_datetime) VALUES (?, ?, ?)", inmates)
+        self.conn.commit()
     
     def save_email(self, email_data: dict):
         for k in email_data:
@@ -57,19 +67,15 @@ class Database(metaclass=Singleton):
         self.cursor.execute(query, tuple(email_data.values()))
         self.conn.commit()
 
+    def update_inmates_pending_release_table(self, inmates: list):
+        query = "INSERT OR REPLACE INTO inmates_pending_release(docket, name, release_datetime) VALUES (?, ?, ?)"
+        self.cursor.executemany(query, inmates)
+        self.conn.commit()
+
     def delete_email(self, template_name: str):
         query = f"DELETE FROM emails WHERE template_name = ?"
         self.cursor.execute(query, (template_name,))
-        self.conn.commit()
-
-    def reset_pending_release_inmates(self, inmate_list: list):
-        with open(os.path.join(DATA_PATH, "reset_pending_release_inmates.sql"), "r") as f:
-            script = f.read()
-            self.conn.executescript(script)
-
-        query = "INSERT INTO pending_release_inmates (docket, name) VALUES (?, ?)"
-        self.conn.executemany(query, inmate_list)
-        self.conn.commit()        
+        self.conn.commit()  
 
     def close(self):
         self.conn.commit()
